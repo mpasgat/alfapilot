@@ -1,5 +1,4 @@
-version: '3.8'
-
+---
 services:
   bot:
     build: ./bot
@@ -14,9 +13,5 @@ services:
     build: ./backend
     ports:
       - "8000:8000"
-    environment:
-      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
     env_file:
       - .env
-
-  # Можно добавить Redis для кэширования и PostgreSQL для хранения данных позже

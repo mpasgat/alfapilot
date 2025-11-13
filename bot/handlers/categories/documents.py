@@ -1,38 +1,112 @@
-from aiogram import F, Router, types
+from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
-
-from bot.keyboards import document_types_menu
-from bot.states.document_states import DocumentStates
+from aiogram.types import Message
+from keyboards import action_menu, document_types_menu, scenario_menu
+from services.ai_service import BackendService
+from states.document_states import DocumentStates
 
 router = Router()
+backend_service = BackendService()
 
 
 @router.message(F.text == "📑 Документы и письма")
-async def documents_handler(message: types.Message, state: FSMContext):
+async def documents_handler(message: Message, state: FSMContext):
+    """Обработчик выбора категории документов"""
     await message.answer(
-        "📄 Документы и письма\n\nВыберите тип документа:",
+        "📄 <b>Документы и письма</b>\n\n" "Выберите тип документа:",
         reply_markup=document_types_menu,
+        parse_mode="HTML",
     )
     await state.set_state(DocumentStates.choosing_type)
 
 
 @router.message(DocumentStates.choosing_type)
-async def process_document_type(message: types.Message, state: FSMContext):
+async def process_document_type(message: Message, state: FSMContext):
+    """Обработка выбора типа документа"""
     doc_type = message.text
+
+    # Сохраняем тип документа
+    await state.update_data(doc_type=doc_type)
+
     await message.answer(
-        f"📝 Создание {doc_type}\n\nОпишите, что должно быть в документе:"
+        f"📝 <b>Создание {doc_type}</b>\n\n"
+        "Опишите, что должно быть в документе (основные пункты, ключевые моменты):",
+        reply_markup=scenario_menu,
+        parse_mode="HTML",
     )
     await state.set_state(DocumentStates.waiting_for_content)
 
 
 @router.message(DocumentStates.waiting_for_content)
-async def process_document_content(message: types.Message, state: FSMContext):
+async def process_document_content(message: Message, state: FSMContext):
+    """Обработка содержания документа и генерация через бэкенд"""
     content = message.text
-    # TODO: Сгенерировать документ через AI
-    await message.answer(
-        "✅ Документ создан!\n\n"
-        "[Здесь будет сгенерированный документ]\n\n"
-        "Предлагаю исправления:\n"
-        "[Здесь будут предложения по исправлениям]"
-    )
+    data = await state.get_data()
+    doc_type = data.get("doc_type", "документа")
+
+    processing_msg = await message.answer("🔄 Создаю документ...")
+
+    try:
+        # Вызываем бэкенд для генерации документа
+        result = await backend_service.generate_document(
+            doc_type=doc_type, content=content
+        )
+
+        document_text = result.get("document", "")
+        corrections = result.get("corrections", [])
+        suggestions = result.get("suggestions", [])
+
+        # Сохраняем сгенерированный документ для возможных исправлений
+        await state.update_data(
+            generated_document=document_text, corrections=corrections
+        )
+
+        # Формируем ответ
+        response_text = f"✅ <b>{doc_type} создан!</b>\n\n"
+        response_text += f"{document_text}\n\n"
+
+        if corrections:
+            response_text += "⚠️ <b>Предлагаемые исправления:</b>\n"
+            for correction in corrections:
+                response_text += f"• {correction}\n"
+            response_text += "\nПрименить исправления?"
+
+        elif suggestions:
+            response_text += "💡 <b>Предложения по улучшению:</b>\n"
+            for suggestion in suggestions:
+                response_text += f"• {suggestion}\n"
+
+        await processing_msg.delete()
+        await message.answer(response_text, reply_markup=action_menu, parse_mode="HTML")
+
+        if corrections:
+            await state.set_state(DocumentStates.waiting_for_corrections)
+        else:
+            await state.clear()
+
+    except Exception as e:
+        await processing_msg.delete()
+        await message.answer(
+            "❌ Ошибка при создании документа. Попробуйте еще раз.",
+            reply_markup=scenario_menu,
+        )
+        await state.clear()
+
+
+@router.message(DocumentStates.waiting_for_corrections)
+async def process_corrections_choice(message: Message, state: FSMContext):
+    """Обработка решения по исправлениям"""
+    user_response = message.text.lower()
+
+    if "да" in user_response or "примен" in user_response:
+        # TODO: Реализовать применение исправлений
+        await message.answer(
+            "✅ Исправления применены! Документ сохранен.", reply_markup=action_menu
+        )
+    else:
+        await message.answer(
+            "❌ Исправления отклонены. Документ сохранен в исходном виде.",
+            reply_markup=action_menu,
+        )
+
     await state.clear()

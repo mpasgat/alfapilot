@@ -1,10 +1,9 @@
-from aiogram import F, Router, types
+from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import ContentType, Message
-
-from bot.keyboards import action_menu, marketing_menu, scenario_menu
-from bot.services.ai_service import BackendService
-from bot.states.marketing_states import MarketingStates
+from keyboards import action_menu, marketing_menu, scenario_menu
+from services.ai_service import BackendService
+from states.marketing_states import MarketingStates
 
 router = Router()
 backend_service = BackendService()
@@ -17,7 +16,7 @@ async def marketing_handler(message: Message, state: FSMContext):
         "🎯 <b>Маркетинг и контент</b>\n\n"
         "Напишите вашу идею или тему для поста в соцсети:",
         reply_markup=marketing_menu,
-        # parse_mode="HTML",
+        parse_mode="HTML",
     )
     await state.set_state(MarketingStates.waiting_for_idea)
 

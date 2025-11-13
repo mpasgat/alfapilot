@@ -15,23 +15,26 @@
 
 1. Python 3.11+
 2. Docker и Docker Compose (опционально)
-3. OpenRouter API key (бесплатно: https://openrouter.ai)
+3. OpenRouter API key (бесплатно: <https://openrouter.ai>)
 4. Telegram Bot Token (от @BotFather)
 
 ### Настройка окружения
 
 1. **Клонируйте репозиторий**:
+
 ```bash
 git clone https://github.com/muhammaduss/alfapilot.git
 cd alfapilot
 ```
 
 2. **Создайте .env файл**:
+
 ```bash
 cp .env.example .env
 ```
 
 3. **Заполните .env**:
+
 ```bash
 # Telegram Bot
 TOKEN=your_telegram_bot_token
@@ -68,7 +71,7 @@ pip install -r requirements.txt
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-Документация API: http://localhost:8000/docs
+Документация API: <http://localhost:8000/docs>
 
 #### Bot
 
@@ -106,7 +109,7 @@ cd backend
 python test_api.py
 ```
 
-Или используйте интерактивную документацию: http://localhost:8000/docs
+Или используйте интерактивную документацию: <http://localhost:8000/docs>
 
 ## 📚 Документация
 
@@ -186,7 +189,7 @@ python test_api.py
 
 ### Ошибки API ключей
 
-- Получите бесплатный ключ на https://openrouter.ai
+- Получите бесплатный ключ на <https://openrouter.ai>
 - Проверьте формат ключа в `.env`
 - Убедитесь, что ключ активен
 
@@ -201,4 +204,3 @@ MIT
 ## 🤝 Вклад
 
 Pull requests приветствуются! Для крупных изменений сначала откройте issue.
-
