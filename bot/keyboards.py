@@ -63,3 +63,15 @@ action_menu = ReplyKeyboardMarkup(
     ],
     resize_keyboard=True,
 )
+
+post_actions_menu = ReplyKeyboardMarkup(
+    keyboard=[
+        [KeyboardButton(text="✅ Сохранить"), KeyboardButton(text="📤 Опубликовать")],
+        [
+            KeyboardButton(text="🖼 Добавить фото"),
+            KeyboardButton(text="📢 Создать промо"),
+        ],
+        [KeyboardButton(text="🔄 Новый пост"), KeyboardButton(text="🏠 Главное меню")],
+    ],
+    resize_keyboard=True,
+)
