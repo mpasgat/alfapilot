@@ -3,6 +3,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import ContentType, Message
 from keyboards import action_menu, scenario_menu
 from services.ai_service import BackendService
+from services.history_service import get_history_service
 from states.legal_states import LegalStates
 
 router = Router()
@@ -50,6 +51,16 @@ async def _analyze_contract(message: Message, state: FSMContext, contract_text: 
         # Вызываем бэкенд для анализа договора
         result = await backend_service.analyze_contract(
             contract_text=contract_text, analyze_risks=True
+        )
+
+        history_service = get_history_service()
+        await history_service.add_record(
+            user_id=message.from_user.id,
+            category="⚖️ Юридическая помощь",
+            request_text=contract_text,
+            response_text="\n\n".join(result.get("summary", [])[:3]),
+            response_data=result,
+            message_id=message.message_id,
         )
 
         summary = result.get("summary", "")

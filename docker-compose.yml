@@ -31,13 +31,37 @@ services:
     build: ./bot
     environment:
       - BACKEND_URL=http://backend:8000
+      - DATABASE_URL=postgresql://alfapilot:alfapilot123@postgres:5432/alfapilot
     depends_on:
       backend:
+        condition: service_healthy
+      postgres:
         condition: service_healthy
     env_file:
       - .env
     networks:
       - alfapilot-network
+
+  postgres:
+    image: postgres:15
+    environment:
+      - POSTGRES_DB=alfapilot
+      - POSTGRES_USER=alfapilot
+      - POSTGRES_PASSWORD=alfapilot123
+    ports:
+      - "5432:5432"
+    networks:
+      - alfapilot-network
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U alfapilot -d alfapilot"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
 
 networks:
   alfapilot-network:

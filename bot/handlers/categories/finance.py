@@ -3,6 +3,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 from keyboards import action_menu, scenario_menu
 from services.ai_service import BackendService
+from services.history_service import get_history_service
 from states.finance_states import FinanceStates
 
 router = Router()
@@ -16,7 +17,7 @@ async def finance_handler(message: Message, state: FSMContext):
         "💰 <b>Финансы и аналитика</b>\n\n"
         "Отправьте финансовые данные для анализа (цифры, таблицы, текстовое описание):",
         reply_markup=scenario_menu,
-        # parse_mode="HTML",
+        parse_mode="HTML",
     )
     await state.set_state(FinanceStates.waiting_for_data)
 
@@ -26,7 +27,6 @@ async def process_finance_data(message: Message, state: FSMContext):
     """Обработка финансовых данных и анализ через бэкенд"""
     financial_data = message.text
 
-    # Clear state first to avoid conflicts
     current_state = await state.get_state()
     if current_state:
         await state.clear()
@@ -37,6 +37,16 @@ async def process_finance_data(message: Message, state: FSMContext):
         # Вызываем бэкенд для анализа данных
         result = await backend_service.analyze_finance_data(
             data=financial_data, analysis_type="summary"
+        )
+
+        history_service = get_history_service()
+        await history_service.add_record(
+            user_id=message.from_user.id,
+            category="📊 Финансы и аналитика",
+            request_text=financial_data,
+            response_text="\n\n".join(result.get("analysis", [])[:3]),
+            response_data=result,
+            message_id=message.message_id,
         )
 
         # Сохраняем данные для возможных дальнейших анализов

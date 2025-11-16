@@ -3,6 +3,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import ContentType, Message
 from keyboards import action_menu, marketing_menu, scenario_menu
 from services.ai_service import BackendService
+from services.history_service import get_history_service
 from states.marketing_states import MarketingStates
 
 router = Router()
@@ -26,7 +27,6 @@ async def process_idea(message: Message, state: FSMContext):
     """Обработка идеи пользователя и генерация постов через бэкенд"""
     user_idea = message.text
 
-    # Показываем что обрабатываем
     processing_msg = await message.answer("🔄 Генерирую варианты постов...")
 
     try:
@@ -37,6 +37,15 @@ async def process_idea(message: Message, state: FSMContext):
         post_variants = result.get("post_variants", [])
         suggestions = result.get("suggestions", [])
 
+        history_service = get_history_service()
+        await history_service.add_record(
+            user_id=message.from_user.id,
+            category="💬 Маркетинг и контент",
+            request_text=user_idea,
+            response_text="\n\n".join(result.get("post_variants", [])[:3]),
+            response_data=result,
+            message_id=message.message_id,
+        )
         await state.update_data(
             post_variants=post_variants,
             suggestions=suggestions,

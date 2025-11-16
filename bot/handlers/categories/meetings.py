@@ -3,6 +3,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 from keyboards import action_menu, scenario_menu
 from services.ai_service import BackendService
+from services.history_service import get_history_service
 from states.meetings_states import MeetingsStates
 
 router = Router()
@@ -32,6 +33,16 @@ async def process_meeting_text(message: Message, state: FSMContext):
         # Используем сервис документов для создания резюме
         result = await backend_service.generate_document(
             doc_type="краткое резюме встречи", content=meeting_text, style="structured"
+        )
+
+        history_service = get_history_service()
+        await history_service.add_record(
+            user_id=message.from_user.id,
+            category="📝 Краткие итоги встреч",
+            request_text=meeting_text,
+            response_text="\n\n".join(result.get("document", [])[:3]),
+            response_data=result,
+            message_id=message.message_id,
         )
 
         summary = result.get("document", "")
