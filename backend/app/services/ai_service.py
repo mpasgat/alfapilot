@@ -46,15 +46,25 @@ class OpenRouterService:
                 return data["choices"][0]["message"]["content"]
                 
             except httpx.HTTPStatusError as e:
-                # Check if it's a rate limit error (429)
-                if e.response.status_code == 429:
-                    error_msg = f"Model {self.model} is rate-limited. "
-                    # Check if DEMO_MODE is enabled for fallback responses
-                    if os.getenv("DEMO_MODE", "false").lower() == "true":
+                # Check if DEMO_MODE is enabled for fallback responses
+                demo_mode = os.getenv("DEMO_MODE", "false").lower() == "true"
+                
+                # Check if it's a rate limit error (429) or authentication error (401)
+                if e.response.status_code in [401, 429]:
+                    if e.response.status_code == 429:
+                        error_msg = f"Model {self.model} is rate-limited. "
+                    else:
+                        error_msg = f"OpenRouter API authentication failed (invalid API key). "
+                    
+                    if demo_mode:
                         print(f"⚠️ DEMO MODE: {error_msg}Using fallback response.")
                         return self._get_demo_response(messages)
-                    error_msg += "Try setting DEMO_MODE=true in .env for mock responses, or wait and retry."
-                raise Exception(f"OpenRouter API HTTP error: {e.response.status_code} - {error_msg}")
+                    
+                    error_msg += "Try setting DEMO_MODE=true in .env for mock responses."
+                    raise Exception(f"OpenRouter API HTTP error: {e.response.status_code} - {error_msg}")
+                
+                # For other HTTP errors, raise with status code
+                raise Exception(f"OpenRouter API HTTP error: {e.response.status_code}")
             except httpx.RequestError as e:
                 raise Exception(f"OpenRouter API connection error: {str(e)}")
             except (KeyError, IndexError) as e:
