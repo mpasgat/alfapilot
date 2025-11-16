@@ -1,6 +1,20 @@
 // API base URL - works both in Docker and local development
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api/v1';
 
+// Helper function to get welcome message with hints
+export function getWelcomeMessage() {
+  return `👋 Добро пожаловать в Alfapilot!
+
+Я помогу вам с различными задачами. Вот что я умею:
+
+📊 **Финансы**: Используйте слова "финансы", "бюджет", "расходы", "доходы", "налоги"
+📝 **Документы**: Используйте слова "документ", "письмо", "заявление", "операционная деятельность"
+⚖️ **Юриспруденция**: Используйте слова "юридический", "договор", "персонал", "кадры", "право"
+📣 **Маркетинг**: Любые другие запросы будут обработаны как маркетинговые
+
+Просто напишите ваш запрос, и я автоматически направлю его к нужному специалисту!`;
+}
+
 // Generic chat function - routes to appropriate endpoint based on message
 export async function sendMessageToBackend(messages) {
   try {
@@ -8,7 +22,7 @@ export async function sendMessageToBackend(messages) {
     const lastMessage = messages[messages.length - 1];
     const userText = (lastMessage.content || lastMessage).toLowerCase();
     
-    // Detect intent from user message
+    // Detect intent from user message with expanded keyword lists
     let endpoint = '/marketing/generate-posts';
     let requestBody = {
       idea: lastMessage.content || lastMessage,
@@ -16,27 +30,38 @@ export async function sendMessageToBackend(messages) {
       target_audience: "general"
     };
     
-    // Check for finance keywords
-    if (userText.includes('финанс') || userText.includes('бюджет') || userText.includes('расход') || 
-        userText.includes('finance') || userText.includes('budget')) {
+    // Check for finance keywords (расширенный список)
+    const financeKeywords = ['финанс', 'бюджет', 'расход', 'доход', 'прибыль', 'убыток', 
+                             'бухгалтер', 'налог', 'отчет', 'баланс', 'аналит',
+                             'finance', 'budget', 'accounting', 'tax', 'profit', 'revenue'];
+    if (financeKeywords.some(keyword => userText.includes(keyword))) {
       endpoint = '/finance/analyze-data';
       requestBody = {
         data: lastMessage.content || lastMessage,
         analysis_type: "general"
       };
     }
-    // Check for legal keywords
-    else if (userText.includes('юрид') || userText.includes('договор') || userText.includes('контракт') || 
-             userText.includes('legal') || userText.includes('contract')) {
+    // Check for legal keywords (расширенный список)
+    else if (userText.includes('юрид') || userText.includes('юрист') || 
+             userText.includes('договор') || userText.includes('контракт') || 
+             userText.includes('право') || userText.includes('закон') ||
+             userText.includes('иск') || userText.includes('суд') ||
+             userText.includes('персонал') || userText.includes('кадр') || userText.includes('сотрудник') ||
+             userText.includes('legal') || userText.includes('contract') || userText.includes('law') ||
+             userText.includes('compliance') || userText.includes('regulation')) {
       endpoint = '/legal/analyze-contract';
       requestBody = {
         contract_text: lastMessage.content || lastMessage,
         analyze_risks: true
       };
     }
-    // Check for document keywords
-    else if (userText.includes('документ') || userText.includes('письмо') || userText.includes('заявлен') ||
-             userText.includes('document') || userText.includes('letter')) {
+    // Check for document keywords (расширенный список)
+    else if (userText.includes('документ') || userText.includes('письмо') || 
+             userText.includes('заявлен') || userText.includes('запрос') ||
+             userText.includes('бланк') || userText.includes('форм') || userText.includes('шаблон') ||
+             userText.includes('операцион') || userText.includes('деятельность') ||
+             userText.includes('document') || userText.includes('letter') || 
+             userText.includes('template') || userText.includes('form')) {
       endpoint = '/documents/generate-document';
       requestBody = {
         doc_type: "letter",
