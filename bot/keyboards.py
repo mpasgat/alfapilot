@@ -57,7 +57,6 @@ document_types_menu = ReplyKeyboardMarkup(
 # Меню действий после анализа
 action_menu = ReplyKeyboardMarkup(
     keyboard=[
-        [KeyboardButton(text="✅ Сохранить"), KeyboardButton(text="📤 Отправить")],
         [KeyboardButton(text="🔄 Новый сценарий")],
         [KeyboardButton(text="🏠 Главное меню")],
     ],
@@ -66,7 +65,6 @@ action_menu = ReplyKeyboardMarkup(
 
 post_actions_menu = ReplyKeyboardMarkup(
     keyboard=[
-        [KeyboardButton(text="✅ Сохранить"), KeyboardButton(text="📤 Опубликовать")],
         [
             KeyboardButton(text="🖼 Добавить фото"),
             KeyboardButton(text="📢 Создать промо"),

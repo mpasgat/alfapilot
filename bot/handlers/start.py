@@ -6,6 +6,11 @@ from keyboards import categories_menu, main_menu
 router = Router()
 
 
+@router.message(lambda message: message.text == "🔄 Новый сценарий")
+async def new_scenario_handler(message: types.Message, state: FSMContext):
+    await categories_handler(message, state)
+
+
 @router.message(CommandStart())
 async def cmd_start(message: types.Message, state: FSMContext):
     await state.clear()
