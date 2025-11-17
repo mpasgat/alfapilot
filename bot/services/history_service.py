@@ -1,4 +1,3 @@
-# File: bot/services/history_service.py
 import logging
 import os
 from datetime import datetime
@@ -75,13 +74,13 @@ class HistoryService:
                         """
                         CREATE TABLE user_history (
                             id SERIAL PRIMARY KEY,
-                            user_id INTEGER NOT NULL,
+                            user_id BIGINT NOT NULL,
                             category VARCHAR(100) NOT NULL,
                             request_text TEXT NOT NULL,
                             response_text TEXT,
                             response_data TEXT,
                             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                            message_id INTEGER
+                            message_id BIGINT
                         );
                         
                         CREATE INDEX idx_user_id ON user_history(user_id);
@@ -91,6 +90,53 @@ class HistoryService:
                 )
                 conn.commit()
                 logger.info("Created user_history table")
+            else:
+                # Проверяем тип столбцов и изменяем если нужно
+                self._migrate_columns(conn)
+
+    def _migrate_columns(self, conn):
+        """Миграция столбцов к BIGINT если нужно"""
+        try:
+            # Проверяем тип user_id
+            result = conn.execute(
+                text(
+                    """
+                    SELECT data_type 
+                    FROM information_schema.columns 
+                    WHERE table_name = 'user_history' AND column_name = 'user_id'
+                """
+                )
+            )
+            user_id_type = result.scalar()
+
+            if user_id_type == "integer":
+                logger.info("Migrating user_id from INTEGER to BIGINT")
+                conn.execute(
+                    text("ALTER TABLE user_history ALTER COLUMN user_id TYPE BIGINT")
+                )
+                conn.commit()
+
+            # Проверяем тип message_id
+            result = conn.execute(
+                text(
+                    """
+                    SELECT data_type 
+                    FROM information_schema.columns 
+                    WHERE table_name = 'user_history' AND column_name = 'message_id'
+                """
+                )
+            )
+            message_id_type = result.scalar()
+
+            if message_id_type == "integer":
+                logger.info("Migrating message_id from INTEGER to BIGINT")
+                conn.execute(
+                    text("ALTER TABLE user_history ALTER COLUMN message_id TYPE BIGINT")
+                )
+                conn.commit()
+
+        except Exception as e:
+            logger.warning(f"Column migration not needed or failed: {e}")
 
     async def add_record(
         self,

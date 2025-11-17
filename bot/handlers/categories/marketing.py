@@ -75,7 +75,6 @@ async def process_idea(message: Message, state: FSMContext):
         await state.set_state(MarketingStates.waiting_for_variant_selection)
 
     except Exception as e:
-        await processing_msg.delete()
         await message.answer(
             "❌ Произошла ошибка при генерации постов. Попробуйте еще раз или обратитесь в поддержку.",
             reply_markup=scenario_menu,
@@ -149,7 +148,6 @@ async def process_stories_idea(message: Message, state: FSMContext):
         await state.clear()
 
     except Exception as e:
-        await processing_msg.delete()
         await message.answer(
             "❌ Ошибка при генерации сторис. Попробуйте еще раз.",
             reply_markup=scenario_menu,

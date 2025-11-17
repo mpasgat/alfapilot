@@ -84,7 +84,6 @@ async def process_finance_data(message: Message, state: FSMContext):
         await state.set_state(FinanceStates.waiting_for_comparison)
 
     except Exception as e:
-        await processing_msg.delete()
         await message.answer(
             f"❌ Ошибка при анализе данных: {str(e)}\nПопробуйте еще раз.",
             reply_markup=scenario_menu,
@@ -128,7 +127,6 @@ async def process_comparison_choice(message: Message, state: FSMContext):
                 response_text += f"\n📊 <b>Ожидаемый рост:</b> {forecast.get('growth', 'не определен')}"
 
         else:
-            await processing_msg.delete()
             await message.answer("Пожалуйста, выберите 'сравнение' или 'прогноз':")
             return
 
@@ -137,7 +135,6 @@ async def process_comparison_choice(message: Message, state: FSMContext):
         await state.clear()
 
     except Exception as e:
-        await processing_msg.delete()
         await message.answer(
             "❌ Ошибка при формировании отчета. Попробуйте еще раз.",
             reply_markup=scenario_menu,

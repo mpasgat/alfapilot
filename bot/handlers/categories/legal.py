@@ -101,7 +101,6 @@ async def _analyze_contract(message: Message, state: FSMContext, contract_text: 
         await state.set_state(LegalStates.waiting_for_reminder)
 
     except Exception as e:
-        await processing_msg.delete()
         await message.answer(
             "❌ Ошибка при анализе договора. Проверьте текст и попробуйте еще раз.",
             reply_markup=scenario_menu,

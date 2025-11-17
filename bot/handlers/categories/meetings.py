@@ -66,7 +66,6 @@ async def process_meeting_text(message: Message, state: FSMContext):
         await state.clear()
 
     except Exception as e:
-        await processing_msg.delete()
         await message.answer(
             "❌ Ошибка при создании резюме. Проверьте текст и попробуйте еще раз.",
             reply_markup=scenario_menu,
